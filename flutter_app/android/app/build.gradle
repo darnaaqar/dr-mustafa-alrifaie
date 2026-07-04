@@ -25,6 +25,10 @@ android {
     namespace "com.dr_mustafa.dental_clinic_app"
     compileSdk 34
 
+    aaptOptions {
+        cruncherEnabled = false
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
