@@ -60,7 +60,19 @@ class DatabaseService {
           .select('*')
           .eq('active', true)
           .order('sort_order', ascending: true);
-      return List<Map<String, dynamic>>.from(response);
+      
+      final list = List<Map<String, dynamic>>.from(response);
+      return list.map((item) {
+        return {
+          ...item,
+          'title_ar': item['name_ar'] ?? item['title_ar'] ?? '',
+          'title_en': item['name_en'] ?? item['title_en'] ?? '',
+          'short_ar': item['short_desc_ar'] ?? item['short_ar'] ?? '',
+          'short_en': item['short_desc_en'] ?? item['short_en'] ?? '',
+          'details_ar': item['details_ar'] ?? '',
+          'details_en': item['details_en'] ?? '',
+        };
+      }).toList();
     } catch (e) {
       print("Supabase connection error, loading premium local backup services.");
       return fallbackServices;
@@ -75,6 +87,7 @@ class DatabaseService {
     required String date,
     required String time,
     required String notes,
+    String preferredLanguage = 'ar',
   }) async {
     if (!_isInitialized) {
       print("Offline mode: Simulated successful booking for $name on $date at $time");
@@ -86,6 +99,7 @@ class DatabaseService {
         'patient_name': name,
         'phone': phone,
         'service_id': serviceId,
+        'preferred_language': preferredLanguage,
         'appointment_date': date,
         'appointment_time': time,
         'notes': notes,

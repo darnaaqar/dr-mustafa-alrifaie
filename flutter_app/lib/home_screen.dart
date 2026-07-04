@@ -269,6 +269,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                       date: _selectedDate,
                                       time: _selectedTime,
                                       notes: _notes,
+                                      preferredLanguage: widget.isArabic ? 'ar' : 'en',
                                     );
 
                                     setModalState(() => _isBookingSubmitting = false);

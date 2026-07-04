@@ -198,7 +198,12 @@ export const db = {
       try {
         const { data, error } = await supabase.from('doctors').select('*');
         if (error) throw error;
-        if (data && data.length > 0) return data;
+        if (data && data.length > 0) {
+          return data.map((doc: any) => ({
+            ...doc,
+            full_name: doc.full_name_ar || doc.full_name_en || doc.full_name,
+          }));
+        }
       } catch (err) {
         console.warn('Supabase getDoctors error, falling back to local storage:', err);
       }
@@ -215,7 +220,15 @@ export const db = {
           .eq('active', true)
           .order('sort_order', { ascending: true });
         if (error) throw error;
-        if (data && data.length > 0) return data;
+        if (data && data.length > 0) {
+          return data.map((srv: any) => ({
+            ...srv,
+            title_ar: srv.name_ar || srv.title_ar,
+            title_en: srv.name_en || srv.title_en,
+            short_ar: srv.short_desc_ar || srv.short_ar,
+            short_en: srv.short_desc_en || srv.short_en,
+          }));
+        }
       } catch (err) {
         console.warn('Supabase getServices error, falling back to local storage:', err);
       }
@@ -266,6 +279,7 @@ export const db = {
             phone: appointment.phone,
             email: appointment.email,
             service_id: appointment.service_id,
+            preferred_language: appointment.preferred_language || 'ar',
             appointment_date: appointment.appointment_date,
             appointment_time: appointment.appointment_time,
             notes: appointment.notes,
