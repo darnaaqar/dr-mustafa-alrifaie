@@ -350,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             "DENTAL AI",
                             style: TextStyle(
                               color: DentalColors.primaryAccent,
-                              fontWeight: FontWeight.extrabold,
+                              fontWeight: FontWeight.w800,
                               fontSize: 18,
                               letterSpacing: 1.2,
                             ),
