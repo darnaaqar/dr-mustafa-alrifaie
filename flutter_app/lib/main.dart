@@ -1,11 +1,27 @@
 // Premium Dental App for Dr. Mustafa Al-Rifai
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'constants.dart';
 import 'home_screen.dart';
+import 'database_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Supabase if keys are provided via --dart-define
+  if (SupabaseConfig.isConfigured) {
+    try {
+      await Supabase.initialize(
+        url: SupabaseConfig.url,
+        anonKey: SupabaseConfig.anonKey,
+      );
+      DatabaseService.instance.markInitialized();
+    } catch (e) {
+      debugPrint("Supabase initialization failed: $e");
+    }
+  }
+
   runApp(const PremiumDentalApp());
 }
 
