@@ -5,7 +5,7 @@
     <application
         android:label="Dr. Mustafa Al-Rifai"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_clinic_launcher"
         android:theme="@android:style/Theme.NoTitleBar">
         <activity
             android:name=".MainActivity"
