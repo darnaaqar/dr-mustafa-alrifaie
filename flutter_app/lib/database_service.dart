@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Doctor {
@@ -116,15 +117,18 @@ class DatabaseService {
   final _supabase = Supabase.instance.client;
 
   Future<List<Doctor>> getDoctors() async {
+    if (!_initialized) return [];
     try {
       final response = await _supabase.from('doctors').select('*');
       return (response as List).map((d) => Doctor.fromJson(d)).toList();
     } catch (e) {
+      debugPrint("Error fetching doctors: $e");
       return [];
     }
   }
 
   Future<List<DentalService>> getServices() async {
+    if (!_initialized) return [];
     try {
       final response = await _supabase
           .from('services')
@@ -133,15 +137,18 @@ class DatabaseService {
           .order('sort_order', ascending: true);
       return (response as List).map((s) => DentalService.fromJson(s)).toList();
     } catch (e) {
+      debugPrint("Error fetching services: $e");
       return [];
     }
   }
 
   Future<List<Map<String, dynamic>>> getGallery() async {
+    if (!_initialized) return [];
     try {
       final response = await _supabase.from('gallery').select('*').order('created_at', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
+      debugPrint("Error fetching gallery: $e");
       return [];
     }
   }
