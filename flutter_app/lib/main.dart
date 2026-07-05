@@ -1,4 +1,3 @@
-// Premium Dental App for Dr. Mustafa Al-Rifai
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -9,7 +8,7 @@ import 'database_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Supabase if keys are provided via --dart-define
+  // Initialize Supabase if keys are provided
   if (SupabaseConfig.isConfigured) {
     try {
       await Supabase.initialize(
@@ -33,7 +32,7 @@ class PremiumDentalApp extends StatefulWidget {
 }
 
 class _PremiumDentalAppState extends State<PremiumDentalApp> {
-  bool isArabic = true; // Default to Arabic as shown in the uploaded screenshot
+  bool isArabic = true;
 
   void toggleLanguage() {
     setState(() {
@@ -44,16 +43,13 @@ class _PremiumDentalAppState extends State<PremiumDentalApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dr. Mustafa Clinic',
+      title: 'Dr. Mustafa Al-Rifai Clinic',
       debugShowCheckedModeBanner: false,
       locale: Locale(isArabic ? 'ar' : 'en'),
-      
-      // Modern High-Contrast Bioluminescent theme
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: DentalColors.background,
         cardColor: DentalColors.cardBg,
         primaryColor: DentalColors.primaryAccent,
-        dividerColor: Colors.white10,
         textTheme: GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme).copyWith(
           bodyMedium: isArabic 
             ? GoogleFonts.cairo(color: DentalColors.textSecondary)

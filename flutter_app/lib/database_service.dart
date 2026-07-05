@@ -1,105 +1,168 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+class Doctor {
+  final String id;
+  final String fullNameAr;
+  final String fullNameEn;
+  final String? titleAr;
+  final String? titleEn;
+  final String? aboutAr;
+  final String? aboutEn;
+  final String? qualificationsAr;
+  final String? qualificationsEn;
+  final int experienceYears;
+  final String? imageUrl;
+  final String? phone;
+  final String? email;
+  final String? whatsapp;
+  final String? facebook;
+  final String? instagram;
+
+  Doctor({
+    required this.id,
+    required this.fullNameAr,
+    required this.fullNameEn,
+    this.titleAr,
+    this.titleEn,
+    this.aboutAr,
+    this.aboutEn,
+    this.qualificationsAr,
+    this.qualificationsEn,
+    this.experienceYears = 0,
+    this.imageUrl,
+    this.phone,
+    this.email,
+    this.whatsapp,
+    this.facebook,
+    this.instagram,
+  });
+
+  factory Doctor.fromJson(Map<String, dynamic> json) {
+    return Doctor(
+      id: json['id'],
+      fullNameAr: json['full_name_ar'] ?? '',
+      fullNameEn: json['full_name_en'] ?? '',
+      titleAr: json['title_ar'],
+      titleEn: json['title_en'],
+      aboutAr: json['about_ar'],
+      aboutEn: json['about_en'],
+      qualificationsAr: json['qualifications_ar'],
+      qualificationsEn: json['qualifications_en'],
+      experienceYears: json['experience_years'] ?? 0,
+      imageUrl: json['image_url'],
+      phone: json['phone'],
+      email: json['email'],
+      whatsapp: json['whatsapp'],
+      facebook: json['facebook'],
+      instagram: json['instagram'],
+    );
+  }
+}
+
+class DentalService {
+  final String id;
+  final String nameAr;
+  final String nameEn;
+  final String? shortDescAr;
+  final String? shortDescEn;
+  final String? detailsAr;
+  final String? detailsEn;
+  final String? benefitsAr;
+  final String? benefitsEn;
+  final String? icon;
+  final String? imageUrl;
+  final int sortOrder;
+
+  DentalService({
+    required this.id,
+    required this.nameAr,
+    required this.nameEn,
+    this.shortDescAr,
+    this.shortDescEn,
+    this.detailsAr,
+    this.detailsEn,
+    this.benefitsAr,
+    this.benefitsEn,
+    this.icon,
+    this.imageUrl,
+    this.sortOrder = 1,
+  });
+
+  factory DentalService.fromJson(Map<String, dynamic> json) {
+    return DentalService(
+      id: json['id'],
+      nameAr: json['name_ar'] ?? '',
+      nameEn: json['name_en'] ?? '',
+      shortDescAr: json['short_desc_ar'],
+      shortDescEn: json['short_desc_en'],
+      detailsAr: json['details_ar'],
+      detailsEn: json['details_en'],
+      benefitsAr: json['benefits_ar'],
+      benefitsEn: json['benefits_en'],
+      icon: json['icon'],
+      imageUrl: json['image_url'],
+      sortOrder: json['sort_order'] ?? 1,
+    );
+  }
+}
+
 class DatabaseService {
-  static final DatabaseService instance = DatabaseService._init();
-  DatabaseService._init();
+  static final DatabaseService instance = DatabaseService._();
+  DatabaseService._();
 
-  bool _isInitialized = false;
+  bool _initialized = false;
+  void markInitialized() => _initialized = true;
 
-  void markInitialized() {
-    _isInitialized = true;
+  final _supabase = Supabase.instance.client;
+
+  Future<List<Doctor>> getDoctors() async {
+    try {
+      final response = await _supabase.from('doctors').select('*');
+      return (response as List).map((d) => Doctor.fromJson(d)).toList();
+    } catch (e) {
+      return [];
+    }
   }
 
-  // Fallback fallback premium service data in case Supabase is offline/unreachable
-  final List<Map<String, dynamic>> fallbackServices = [
-    {
-      'id': 'srv-1',
-      'title_ar': 'تبييض الأسنان بالليزر',
-      'title_en': 'Laser Teeth Whitening',
-      'short_ar': 'ابتسامة ناصعة البياض خلال جلسة واحدة بأحدث تقنيات الليزر البارد.',
-      'short_en': 'Bright white smile in one session using clinical laser systems.',
-      'icon': 'sparkles',
-      'image_url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuA8IhJhiFXgCJoUCUhdnc489Z5-t5f73w8_vrm1xpYXedmkJ03q-koJmRfbOUzS_KQB0wsM6NaXDIHtJwV0K5zDDPGeUiBqxJ1vahCOg4L_EOFtulSHKST682LV0CZ5esHQYRSk_GGGGfRSBitnzecYBWkSCsJoqy8_nsg06W7xEsAhpHHHrHBwqXslITJ85aSDIxTyNuG8ThD74NSybCASpY9V3MVWaet_3GWL3yhamaVQj4dbDGJVwpsxnrt-nByMJbCOw2YSxps',
-    },
-    {
-      'id': 'srv-2',
-      'title_ar': 'الفينير والعدسات التجميلية',
-      'title_en': 'Premium Veneers',
-      'short_ar': 'تصميم ابتسامة هوليوود مخصصة تناسب ملامح وجهك بدقة متناهية.',
-      'short_en': 'Custom designed porcelain teeth tailored to your face structure.',
-      'icon': 'smile',
-      'image_url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuA8IhJhiFXgCJoUCUhdnc489Z5-t5f73w8_vrm1xpYXedmkJ03q-koJmRfbOUzS_KQB0wsM6NaXDIHtJwV0K5zDDPGeUiBqxJ1vahCOg4L_EOFtulSHKST682LV0CZ5esHQYRSk_GGGGfRSBitnzecYBWkSCsJoqy8_nsg06W7xEsAhpHHHrHBwqXslITJ85aSDIxTyNuG8ThD74NSybCASpY9V3MVWaet_3GWL3yhamaVQj4dbDGJVwpsxnrt-nByMJbCOw2YSxps',
-    },
-    {
-      'id': 'srv-3',
-      'title_ar': 'زراعة الأسنان الرقمية',
-      'title_en': 'Digital Dental Implants',
-      'short_ar': 'غرسات تيتانيوم فورية موجهة بالكمبيوتر وبدون ألم.',
-      'short_en': 'Computer-guided painless instant titanium crown implants.',
-      'icon': 'shield',
-      'image_url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuA8IhJhiFXgCJoUCUhdnc489Z5-t5f73w8_vrm1xpYXedmkJ03q-koJmRfbOUzS_KQB0wsM6NaXDIHtJwV0K5zDDPGeUiBqxJ1vahCOg4L_EOFtulSHKST682LV0CZ5esHQYRSk_GGGGfRSBitnzecYBWkSCsJoqy8_nsg06W7xEsAhpHHHrHBwqXslITJ85aSDIxTyNuG8ThD74NSybCASpY9V3MVWaet_3GWL3yhamaVQj4dbDGJVwpsxnrt-nByMJbCOw2YSxps',
-    },
-    {
-      'id': 'srv-4',
-      'title_ar': 'تقويم الأسنان غير المرئي',
-      'title_en': 'Invisalign Orthodontics',
-      'short_ar': 'تعديل اصطفاف الأسنان بأحدث القوالب الشفافة والمريحة.',
-      'short_en': 'Seamless, comfortable teeth aligning using crystal clear aligners.',
-      'icon': 'activity',
-      'image_url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuA8IhJhiFXgCJoUCUhdnc489Z5-t5f73w8_vrm1xpYXedmkJ03q-koJmRfbOUzS_KQB0wsM6NaXDIHtJwV0K5zDDPGeUiBqxJ1vahCOg4L_EOFtulSHKST682LV0CZ5esHQYRSk_GGGGfRSBitnzecYBWkSCsJoqy8_nsg06W7xEsAhpHHHrHBwqXslITJ85aSDIxTyNuG8ThD74NSybCASpY9V3MVWaet_3GWL3yhamaVQj4dbDGJVwpsxnrt-nByMJbCOw2YSxps',
-    }
-  ];
-
-  // Retrieve list of services
-  Future<List<Map<String, dynamic>>> getServices() async {
-    if (!_isInitialized) return fallbackServices;
+  Future<List<DentalService>> getServices() async {
     try {
-      final client = Supabase.instance.client;
-      final response = await client
+      final response = await _supabase
           .from('services')
           .select('*')
           .eq('active', true)
           .order('sort_order', ascending: true);
-      
-      final list = List<Map<String, dynamic>>.from(response);
-      return list.map((item) {
-        return {
-          ...item,
-          'title_ar': item['name_ar'] ?? item['title_ar'] ?? '',
-          'title_en': item['name_en'] ?? item['title_en'] ?? '',
-          'short_ar': item['short_desc_ar'] ?? item['short_ar'] ?? '',
-          'short_en': item['short_desc_en'] ?? item['short_en'] ?? '',
-          'details_ar': item['details_ar'] ?? '',
-          'details_en': item['details_en'] ?? '',
-        };
-      }).toList();
+      return (response as List).map((s) => DentalService.fromJson(s)).toList();
     } catch (e) {
-      print("Supabase connection error, loading premium local backup services.");
-      return fallbackServices;
+      return [];
     }
   }
 
-  // Save booked appointment to database
+  Future<List<Map<String, dynamic>>> getGallery() async {
+    try {
+      final response = await _supabase.from('gallery').select('*').order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      return [];
+    }
+  }
+
   Future<bool> bookAppointment({
     required String name,
     required String phone,
+    required String? email,
     required String? serviceId,
     required String date,
     required String time,
     required String notes,
-    String preferredLanguage = 'ar',
+    String lang = 'ar',
   }) async {
-    if (!_isInitialized) {
-      print("Offline mode: Simulated successful booking for $name on $date at $time");
-      return true;
-    }
     try {
-      final client = Supabase.instance.client;
-      await client.from('appointments').insert({
+      await _supabase.from('appointments').insert({
         'patient_name': name,
         'phone': phone,
+        'email': email,
         'service_id': serviceId,
-        'preferred_language': preferredLanguage,
+        'preferred_language': lang,
         'appointment_date': date,
         'appointment_time': time,
         'notes': notes,
@@ -107,7 +170,6 @@ class DatabaseService {
       });
       return true;
     } catch (e) {
-      print("Booking insert error: $e");
       return false;
     }
   }

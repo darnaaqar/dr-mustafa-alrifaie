@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'constants.dart';
 import 'database_service.dart';
 
@@ -16,293 +20,9 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  // Booking Form Controller states
-  final _formKey = GlobalKey<FormState>();
-  String _patientName = '';
-  String _patientPhone = '';
-  String? _selectedService;
-  String _selectedDate = '2026-07-05';
-  String _selectedTime = '11:00 AM';
-  String _notes = '';
-  bool _isBookingSubmitting = false;
-
-  void _openBookingWizard(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            final trans = DentalTranslations.localizedValues[widget.isArabic ? 'ar' : 'en']!;
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.85,
-              decoration: const BoxDecoration(
-                color: DentalColors.cardBg,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                border: Border(
-                  top: BorderSide(color: DentalColors.primaryAccent, width: 1.5),
-                ),
-              ),
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 24,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-              ),
-              child: SingleChildScrollView(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Header of wizard modal
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.close, color: DentalColors.textSecondary),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          Text(
-                            trans['book_btn']!,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: DentalColors.primaryAccent,
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 48), // Spacer
-                        ],
-                      ),
-                      const Divider(color: Colors.white10, height: 24),
-                      
-                      // Full Name input field
-                      TextFormField(
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: trans['name_label'],
-                          labelStyle: const TextStyle(color: DentalColors.textSecondary),
-                          enabledBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white10),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: DentalColors.primaryAccent),
-                          ),
-                          prefixIcon: const Icon(Icons.person, color: DentalColors.primaryAccent),
-                        ),
-                        validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                        onSaved: (val) => _patientName = val ?? '',
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Phone Number input field
-                      TextFormField(
-                        keyboardType: TextInputType.phone,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: trans['phone_label'],
-                          labelStyle: const TextStyle(color: DentalColors.textSecondary),
-                          enabledBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white10),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: DentalColors.primaryAccent),
-                          ),
-                          prefixIcon: const Icon(Icons.phone, color: DentalColors.primaryAccent),
-                        ),
-                        validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                        onSaved: (val) => _patientPhone = val ?? '',
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Dropdown selection for clinical service
-                      DropdownButtonFormField<String>(
-                        dropdownColor: DentalColors.cardBg,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: trans['select_service'],
-                          labelStyle: const TextStyle(color: DentalColors.textSecondary),
-                          enabledBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white10),
-                          ),
-                          prefixIcon: const Icon(Icons.medical_services, color: DentalColors.primaryAccent),
-                        ),
-                        items: [
-                          'Teeth Whitening',
-                          'Veneers',
-                          'Dental Implants',
-                          'Orthodontics'
-                        ].map((String val) {
-                          return DropdownMenuItem<String>(
-                            value: val,
-                            child: Text(val),
-                          );
-                        }).toList(),
-                        onChanged: (val) => setModalState(() => _selectedService = val),
-                        validator: (val) => val == null ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Selection row for Date & Time slots
-                      Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: () async {
-                                final date = await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now().add(const Duration(days: 1)),
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime.now().add(const Duration(days: 30)),
-                                );
-                                if (date != null) {
-                                  setModalState(() {
-                                    _selectedDate = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-                                  });
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.white10),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Icon(Icons.calendar_today, size: 16, color: DentalColors.primaryAccent),
-                                    Text(_selectedDate, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.white10),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Icon(Icons.access_time, size: 16, color: DentalColors.primaryAccent),
-                                  Text(_selectedTime, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Notes input field
-                      TextFormField(
-                        maxLines: 2,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: trans['notes_label'],
-                          labelStyle: const TextStyle(color: DentalColors.textSecondary),
-                          enabledBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white10),
-                          ),
-                          prefixIcon: const Icon(Icons.notes, color: DentalColors.primaryAccent),
-                        ),
-                        onSaved: (val) => _notes = val ?? '',
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Digital confirmation trigger button
-                      _isBookingSubmitting
-                          ? const Center(child: CircularProgressIndicator(color: DentalColors.primaryAccent))
-                          : Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(14),
-                                gradient: DentalColors.buttonGradient,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: DentalColors.primaryAccent.withOpacity(0.35),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  shadowColor: Colors.transparent,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  if (_formKey.currentState!.validate()) {
-                                    _formKey.currentState!.save();
-                                    setModalState(() => _isBookingSubmitting = true);
-                                    
-                                    bool isSuccess = await DatabaseService.instance.bookAppointment(
-                                      name: _patientName,
-                                      phone: _patientPhone,
-                                      serviceId: _selectedService,
-                                      date: _selectedDate,
-                                      time: _selectedTime,
-                                      notes: _notes,
-                                      preferredLanguage: widget.isArabic ? 'ar' : 'en',
-                                    );
-
-                                    setModalState(() => _isBookingSubmitting = false);
-                                    Navigator.pop(context); // Close sheet
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        backgroundColor: DentalColors.cardBg,
-                                        content: Text(
-                                          trans['success_booking']!,
-                                          style: const TextStyle(color: DentalColors.primaryAccent, fontWeight: FontWeight.bold),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: Text(
-                                  trans['submit_booking']!,
-                                  style: const TextStyle(color: DentalColors.background, fontWeight: FontWeight.bold, fontSize: 15),
-                                ),
-                              ),
-                            ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -314,484 +34,632 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: DentalColors.background,
-        
-        // Premium sliding drawer loaded with full categories
-        drawer: Drawer(
-          backgroundColor: DentalColors.background,
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(
-                  color: widget.isArabic ? Colors.white10 : Colors.transparent,
-                  width: widget.isArabic ? 1 : 0,
-                ),
-                right: BorderSide(
-                  color: !widget.isArabic ? Colors.white10 : Colors.transparent,
-                  width: !widget.isArabic ? 1 : 0,
+        appBar: AppBar(
+          backgroundColor: DentalColors.background.withOpacity(0.8),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(LucideIcons.menu, color: DentalColors.primaryAccent),
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          ),
+          title: Row(
+            children: [
+              const Icon(LucideIcons.stethoscope, color: DentalColors.primaryAccent, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                "DENTAL AI",
+                style: GoogleFonts.inter(
+                  color: DentalColors.primaryAccent,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                  letterSpacing: -0.5,
                 ),
               ),
-            ),
-            child: Column(
-              children: [
-                // Drawer Header
-                DrawerHeader(
-                  decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(color: Colors.white10, width: 0.5)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.medical_services_outlined, size: 28, color: DentalColors.primaryAccent),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "DENTAL AI",
-                            style: TextStyle(
-                              color: DentalColors.primaryAccent,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          Text(
-                            trans['premium_system']!,
-                            style: const TextStyle(color: DentalColors.textSecondary, fontSize: 10),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // Populated drawer list categories
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    children: [
-                      _buildDrawerItem(Icons.home, trans['home']!, true),
-                      _buildDrawerItem(Icons.health_and_safety, trans['services']!, false),
-                      _buildDrawerItem(Icons.photo_library, trans['gallery']!, false),
-                      _buildDrawerItem(Icons.person, trans['about']!, false),
-                      _buildDrawerItem(Icons.phone, trans['contact']!, false),
-                      _buildDrawerItem(Icons.calendar_month, trans['bookings']!, false, isBadge: true),
-                    ],
-                  ),
-                ),
-                
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text(
-                    "v1.2.0-AI Client",
-                    style: TextStyle(color: Colors.white10, fontSize: 10, fontFamily: 'monospace'),
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: ActionChip(
+                backgroundColor: DentalColors.cardBg,
+                side: BorderSide(color: DentalColors.primaryAccent.withOpacity(0.2)),
+                label: Text(
+                  widget.isArabic ? "English" : "عربي",
+                  style: TextStyle(color: DentalColors.primaryAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                onPressed: widget.onLanguageToggle,
+              ),
+            ),
+          ],
         ),
-
-        body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Top Custom App Bar Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.menu, color: DentalColors.primaryAccent, size: 24),
-                      onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-                    ),
-                    
-                    // Arabic/English Toggle Button Container matching the uploaded design
-                    GestureDetector(
-                      onTap: widget.onLanguageToggle,
-                      child: Container(
-                        height: 38,
-                        width: 130,
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.04),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white10, width: 0.8),
-                        ),
-                        child: Row(
-                          children: [
-                            // Arabic label
-                            Expanded(
-                              child: Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: widget.isArabic ? DentalColors.primaryAccent.withOpacity(0.12) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(17),
-                                ),
-                                child: Text(
-                                  "عربي",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: widget.isArabic ? DentalColors.primaryAccent : DentalColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // English label
-                            Expanded(
-                              child: Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: !widget.isArabic ? DentalColors.primaryAccent.withOpacity(0.12) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(17),
-                                ),
-                                child: Text(
-                                  "English",
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: !widget.isArabic ? DentalColors.primaryAccent : DentalColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 24),
-
-                // Clinical Identity Header
-                const Icon(
-                  Icons.medical_services_outlined,
-                  size: 48,
-                  color: DentalColors.primaryAccent,
-                ),
-                const SizedBox(height: 12),
-                
-                Text(
-                  trans['title']!,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  trans['subtitle']!,
-                  style: const TextStyle(
-                    color: DentalColors.primaryAccent,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  trans['tagline']!,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Core Glowing Holographic Tooth scan view centerpiece
-                AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    return Container(
-                      height: 200,
-                      width: 200,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: DentalColors.primaryAccent.withOpacity(0.15 + (_pulseController.value * 0.15)),
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: DentalColors.primaryAccent.withOpacity(0.08 * _pulseController.value),
-                            blurRadius: 30,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Rotating scanline effect
-                          Transform.scale(
-                            scale: 0.9 + (_pulseController.value * 0.1),
-                            child: Container(
-                              height: 180,
-                              width: 180,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: DentalColors.primaryAccent.withOpacity(0.08),
-                                  width: 1,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // central tooth visual
-                          Icon(
-                            Icons.health_and_safety_sharp,
-                            size: 90,
-                            color: DentalColors.primaryAccent.withOpacity(0.85 + (_pulseController.value * 0.15)),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 24),
-
-                // Translation Slogan Section
-                const Text(
-                  "إبتسامة صحية.. مظهر أجمل.. حياة أفضل",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  "Healthy smile.. Beautiful look.. Better life",
-                  style: TextStyle(
-                    color: DentalColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 36),
-
-                // Services Bento Grid Layout
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.45,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  children: [
-                    _buildBentoCard(
-                      Icons.star_half,
-                      widget.isArabic ? 'تبييض الأسنان' : 'Teeth Whitening',
-                      widget.isArabic ? 'Teeth Whitening' : 'تبييض الأسنان',
-                    ),
-                    _buildBentoCard(
-                      Icons.layers,
-                      widget.isArabic ? 'الفينير' : 'Veneers',
-                      widget.isArabic ? 'Veneers' : 'الفينير',
-                    ),
-                    _buildBentoCard(
-                      Icons.shield_outlined,
-                      widget.isArabic ? 'زراعة الأسنان' : 'Dental Implants',
-                      widget.isArabic ? 'Dental Implants' : 'زراعة الأسنان',
-                    ),
-                    _buildBentoCard(
-                      Icons.grid_3x3,
-                      widget.isArabic ? 'تقويم الأسنان' : 'Orthodontics',
-                      widget.isArabic ? 'Orthodontics' : 'تقويم الأسنان',
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 36),
-
-                // Glowing Interactive Appointment Action Button
-                GestureDetector(
-                  onTap: () => _openBookingWizard(context),
-                  child: Container(
-                    width: double.infinity,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      gradient: DentalColors.buttonGradient,
-                      boxShadow: [
-                        BoxShadow(
-                          color: DentalColors.primaryAccent.withOpacity(0.3),
-                          blurRadius: 15,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              trans['book_btn']!,
-                              style: const TextStyle(
-                                color: DentalColors.background,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              trans['book_subtitle']!,
-                              style: TextStyle(
-                                color: DentalColors.background.withOpacity(0.6),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Icon(
-                          Icons.calendar_month,
-                          color: DentalColors.background,
-                          size: 28,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 36),
-
-                // Centered Premium Slogan Footer (Synchronized with uploaded design requirements)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: Colors.white10, width: 0.5)),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text("✦", style: TextStyle(color: DentalColors.primaryAccent, fontSize: 12)),
-                          const SizedBox(width: 8),
-                          const Text("🛡️", style: TextStyle(fontSize: 15)),
-                          const SizedBox(width: 8),
-                          Text(
-                            trans['care_smile']!,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text("✦", style: TextStyle(color: DentalColors.primaryAccent, fontSize: 12)),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        trans['we_care']!,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.4),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+        drawer: _buildDrawer(trans),
+        body: IndexedStack(
+          index: _currentIndex,
+          children: [
+            _HomeTab(isArabic: widget.isArabic, onBookNow: () => _openBookingForm(context)),
+            _ServicesTab(isArabic: widget.isArabic),
+            _GalleryTab(isArabic: widget.isArabic),
+            _AboutTab(isArabic: widget.isArabic),
+            _ContactTab(isArabic: widget.isArabic),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          backgroundColor: DentalColors.cardBg,
+          selectedItemColor: DentalColors.primaryAccent,
+          unselectedItemColor: DentalColors.textSecondary.withOpacity(0.5),
+          type: BottomNavigationBarType.fixed,
+          selectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+          unselectedLabelStyle: const TextStyle(fontSize: 10),
+          items: [
+            BottomNavigationBarItem(icon: const Icon(LucideIcons.home), label: trans['home']),
+            BottomNavigationBarItem(icon: const Icon(LucideIcons.stethoscope), label: trans['services']),
+            BottomNavigationBarItem(icon: const Icon(LucideIcons.layoutGrid), label: trans['gallery']),
+            BottomNavigationBarItem(icon: const Icon(LucideIcons.user), label: trans['about']),
+            BottomNavigationBarItem(icon: const Icon(LucideIcons.phone), label: trans['contact']),
+          ],
         ),
       ),
     );
   }
 
-  // Builder for the drawer list elements
-  Widget _buildDrawerItem(IconData icon, String label, bool isActive, {bool isBadge = false}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      decoration: BoxDecoration(
-        color: isActive ? DentalColors.primaryAccent.withOpacity(0.08) : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isActive ? DentalColors.primaryAccent.withOpacity(0.15) : Colors.transparent,
-        ),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: isActive ? DentalColors.primaryAccent : DentalColors.textSecondary, size: 20),
-        title: Text(
-          label,
-          style: TextStyle(
-            color: isActive ? Colors.white : DentalColors.textSecondary,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            fontSize: 13.5,
-          ),
-        ),
-        trailing: isBadge
-            ? Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              )
-            : null,
-        onTap: () {
-          _scaffoldKey.currentState?.closeDrawer();
-        },
-      ),
-    );
-  }
-
-  // Builder for beautiful premium bento cards in the grid
-  Widget _buildBentoCard(IconData icon, String primaryTitle, String secondaryTitle) {
-    return Container(
-      decoration: BoxDecoration(
-        color: DentalColors.cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10, width: 0.8),
-      ),
-      padding: const EdgeInsets.all(12),
+  Widget _buildDrawer(Map<String, String> trans) {
+    return Drawer(
+      backgroundColor: DentalColors.background,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: DentalColors.primaryAccent, size: 22),
-          const SizedBox(height: 10),
-          Text(
-            primaryTitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Colors.white10)),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(LucideIcons.stethoscope, size: 40, color: DentalColors.primaryAccent),
+                  const SizedBox(height: 12),
+                  Text(
+                    "DENTAL AI CLINIC",
+                    style: GoogleFonts.inter(
+                      color: DentalColors.primaryAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            secondaryTitle,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.35),
-              fontSize: 10,
+          _buildDrawerItem(LucideIcons.home, trans['home']!, 0),
+          _buildDrawerItem(LucideIcons.stethoscope, trans['services']!, 1),
+          _buildDrawerItem(LucideIcons.layoutGrid, trans['gallery']!, 2),
+          _buildDrawerItem(LucideIcons.user, trans['about']!, 3),
+          _buildDrawerItem(LucideIcons.phone, trans['contact']!, 4),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text(
+              "v1.0.1 Premium",
+              style: GoogleFonts.jetBrainsMono(color: Colors.white10, fontSize: 10),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDrawerItem(IconData icon, String label, int index) {
+    bool isActive = _currentIndex == index;
+    return ListTile(
+      leading: Icon(icon, color: isActive ? DentalColors.primaryAccent : DentalColors.textSecondary),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: isActive ? Colors.white : DentalColors.textSecondary,
+          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      onTap: () {
+        setState(() => _currentIndex = index);
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  void _openBookingForm(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _BookingForm(isArabic: widget.isArabic),
+    );
+  }
+}
+
+class _HomeTab extends StatelessWidget {
+  final bool isArabic;
+  final VoidCallback onBookNow;
+  const _HomeTab({required this.isArabic, required this.onBookNow});
+
+  @override
+  Widget build(BuildContext context) {
+    final trans = DentalTranslations.localizedValues[isArabic ? 'ar' : 'en']!;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Hero Section
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: DentalColors.cardBg,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white10),
+              image: DecorationImage(
+                image: const NetworkImage('https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=1200'),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.7), BlendMode.darken),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  trans['tagline']!,
+                  style: GoogleFonts.cairo(
+                    color: DentalColors.primaryAccent,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                  ),
+                ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2),
+                const SizedBox(height: 12),
+                Text(
+                  isArabic ? "أحدث تقنيات طب الأسنان الرقمي والجميل" : "Latest digital and aesthetic dentistry technologies",
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: onBookNow,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: DentalColors.primaryAccent,
+                    foregroundColor: DentalColors.background,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(trans['book_now']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Stats Row
+          Row(
+            children: [
+              _buildStatCard(isArabic ? '١٥+' : '15+', trans['experience']!),
+              const SizedBox(width: 12),
+              _buildStatCard(isArabic ? '٥٠٠٠+' : '5000+', isArabic ? 'مريض سعيد' : 'Happy Patients'),
+            ],
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Services Preview
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(trans['our_services_title']!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              TextButton(onPressed: () {}, child: Text(trans['view_all']!, style: const TextStyle(color: DentalColors.primaryAccent))),
+            ],
+          ),
+          const SizedBox(height: 16),
+          FutureBuilder<List<DentalService>>(
+            future: DatabaseService.instance.getServices(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+              final services = snapshot.data!.take(4).toList();
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.5,
+                ),
+                itemCount: services.length,
+                itemBuilder: (context, index) {
+                  final s = services[index];
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: DentalColors.cardBg,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(LucideIcons.sparkles, color: DentalColors.primaryAccent, size: 20),
+                        const SizedBox(height: 8),
+                        Text(
+                          isArabic ? s.nameAr : s.nameEn,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                          maxLines: 1,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String val, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: DentalColors.cardBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+        ),
+        child: Column(
+          children: [
+            Text(val, style: const TextStyle(color: DentalColors.primaryAccent, fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(label, style: const TextStyle(color: DentalColors.textSecondary, fontSize: 11)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ServicesTab extends StatelessWidget {
+  final bool isArabic;
+  const _ServicesTab({required this.isArabic});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<DentalService>>(
+      future: DatabaseService.instance.getServices(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final services = snapshot.data!;
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: services.length,
+          itemBuilder: (context, index) {
+            final s = services[index];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: DentalColors.cardBg,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white10),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (s.imageUrl != null)
+                    Image.network(s.imageUrl!, height: 160, width: double.infinity, fit: BoxFit.cover),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isArabic ? s.nameAr : s.nameEn,
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          (isArabic ? s.shortDescAr : s.shortDescEn) ?? '',
+                          style: const TextStyle(color: DentalColors.textSecondary, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _GalleryTab extends StatelessWidget {
+  final bool isArabic;
+  const _GalleryTab({required this.isArabic});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: DatabaseService.instance.getGallery(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final items = snapshot.data!;
+        return GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                image: DecorationImage(image: NetworkImage(item['image_url']), fit: BoxFit.cover),
+                border: Border.all(color: Colors.white10),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _AboutTab extends StatelessWidget {
+  final bool isArabic;
+  const _AboutTab({required this.isArabic});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Doctor>>(
+      future: DatabaseService.instance.getDoctors(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (snapshot.data!.isEmpty) return const Center(child: Text("No data"));
+        final doc = snapshot.data!.first;
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 80,
+                backgroundImage: NetworkImage(doc.imageUrl ?? ''),
+                backgroundColor: DentalColors.cardBg,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                isArabic ? doc.fullNameAr : doc.fullNameEn,
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              Text(
+                (isArabic ? doc.titleAr : doc.titleEn) ?? '',
+                style: const TextStyle(color: DentalColors.primaryAccent, fontSize: 16),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: DentalColors.cardBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.user, color: DentalColors.primaryAccent, size: 18),
+                        const SizedBox(width: 8),
+                        Text(isArabic ? "عن الدكتور" : "About Me", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      (isArabic ? doc.aboutAr : doc.aboutEn) ?? '',
+                      style: const TextStyle(color: DentalColors.textSecondary, height: 1.6),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ContactTab extends StatelessWidget {
+  final bool isArabic;
+  const _ContactTab({required this.isArabic});
+
+  @override
+  Widget build(BuildContext context) {
+    final trans = DentalTranslations.localizedValues[isArabic ? 'ar' : 'en']!;
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          _buildContactItem(LucideIcons.phone, trans['phone_label']!, "+966 50 123 4567"),
+          _buildContactItem(LucideIcons.mail, trans['email_label']!, "info@dr-mustafa-clinic.com"),
+          _buildContactItem(LucideIcons.mapPin, trans['address']!, isArabic ? "شارع التخصصي، الرياض" : "Takhassusi St, Riyadh"),
+          _buildContactItem(LucideIcons.clock, trans['working_hours']!, isArabic ? "السبت - الخميس: ٩ ص - ٩ م" : "Sat - Thu: 9 AM - 9 PM"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContactItem(IconData icon, String label, String value) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: DentalColors.cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: DentalColors.primaryAccent, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(color: DentalColors.textSecondary, fontSize: 11)),
+                Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BookingForm extends StatefulWidget {
+  final bool isArabic;
+  const _BookingForm({required this.isArabic});
+
+  @override
+  State<_BookingForm> createState() => _BookingFormState();
+}
+
+class _BookingFormState extends State<_BookingForm> {
+  final _formKey = GlobalKey<FormState>();
+  String name = '';
+  String phone = '';
+  String email = '';
+  String? serviceId;
+  DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
+  TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
+  String notes = '';
+  bool loading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final trans = DentalTranslations.localizedValues[widget.isArabic ? 'ar' : 'en']!;
+    return Container(
+      padding: EdgeInsets.only(
+        left: 24, right: 24, top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 40,
+      ),
+      decoration: const BoxDecoration(
+        color: DentalColors.background,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border(top: BorderSide(color: DentalColors.primaryAccent, width: 2)),
+      ),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(trans['book_btn']!, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+              const SizedBox(height: 24),
+              _buildField(LucideIcons.user, trans['name_label']!, (v) => name = v),
+              const SizedBox(height: 16),
+              _buildField(LucideIcons.phone, trans['phone_label']!, (v) => phone = v, type: TextInputType.phone),
+              const SizedBox(height: 16),
+              _buildField(LucideIcons.mail, trans['email_label']!, (v) => email = v, type: TextInputType.emailAddress, required: false),
+              const SizedBox(height: 16),
+              
+              FutureBuilder<List<DentalService>>(
+                future: DatabaseService.instance.getServices(),
+                builder: (context, snapshot) {
+                  return DropdownButtonFormField<String>(
+                    dropdownColor: DentalColors.cardBg,
+                    decoration: _inputDecoration(LucideIcons.stethoscope, trans['select_service']!),
+                    items: (snapshot.data ?? []).map((s) => DropdownMenuItem(
+                      value: s.id,
+                      child: Text(widget.isArabic ? s.nameAr : s.nameEn, style: const TextStyle(fontSize: 13)),
+                    )).toList(),
+                    onChanged: (v) => setState(() => serviceId = v),
+                    validator: (v) => v == null ? 'Required' : null,
+                  );
+                },
+              ),
+              
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: loading ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: DentalColors.primaryAccent,
+                    foregroundColor: DentalColors.background,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: loading 
+                    ? const CircularProgressIndicator(color: DentalColors.background)
+                    : Text(trans['submit_booking']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+    setState(() => loading = true);
+    
+    final success = await DatabaseService.instance.bookAppointment(
+      name: name,
+      phone: phone,
+      email: email,
+      serviceId: serviceId,
+      date: "${selectedDate.year}-${selectedDate.month}-${selectedDate.day}",
+      time: "${selectedTime.hour}:${selectedTime.minute}",
+      notes: notes,
+      lang: widget.isArabic ? 'ar' : 'en',
+    );
+
+    if (mounted) {
+      setState(() => loading = false);
+      if (success) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(DentalTranslations.localizedValues[widget.isArabic ? 'ar' : 'en']!['success_booking']!)),
+        );
+      }
+    }
+  }
+
+  Widget _buildField(IconData icon, String label, Function(String) onSave, {TextInputType type = TextInputType.text, bool required = true}) {
+    return TextFormField(
+      keyboardType: type,
+      style: const TextStyle(color: Colors.white),
+      decoration: _inputDecoration(icon, label),
+      validator: required ? (v) => v!.isEmpty ? 'Required' : null : null,
+      onSaved: (v) => onSave(v ?? ''),
+    );
+  }
+
+  InputDecoration _inputDecoration(IconData icon, String label) {
+    return InputDecoration(
+      prefixIcon: Icon(icon, color: DentalColors.primaryAccent, size: 20),
+      labelText: label,
+      labelStyle: const TextStyle(color: DentalColors.textSecondary, fontSize: 14),
+      filled: true,
+      fillColor: DentalColors.cardBg,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: DentalColors.primaryAccent)),
     );
   }
 }
