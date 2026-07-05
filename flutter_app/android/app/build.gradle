@@ -58,4 +58,7 @@ android {
     }
 }
 
-dependencies {}
+dependencies {
+    // Flutter embedding dependency
+    implementation(project(":flutter"))
+}
