@@ -13,10 +13,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     defaultConfig {
         applicationId = "com.dr_mustafa.dental_clinic_app"
         minSdk = flutter.minSdkVersion
@@ -43,4 +39,3 @@ flutter {
 
 dependencies {
 }
-
