@@ -16,10 +16,10 @@ class DentalColors {
 }
 
 class SupabaseConfig {
-  static const String url = String.fromEnvironment('SUPABASE_URL', defaultValue: '');
-  static const String anonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+  static const String url = 'https://dkofobocffyzlpmqrrwo.supabase.co';
+  static const String anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrb2ZvYm9jZmZ5emxwbXFycndvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDY0NTIsImV4cCI6MjA5NjQyMjQ1Mn0.JmQWvPhsMjobIAWM1EuRtHOsomBJ8U5FiY20ml8dRSo';
   
-  static bool get isConfigured => url.isNotEmpty && anonKey.isNotEmpty;
+  static bool get isConfigured => true;
 }
 
 class DentalTranslations {
