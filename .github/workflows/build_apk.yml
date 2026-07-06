@@ -23,6 +23,10 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
+      - name: Increase Gradle Memory
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError" >> android/gradle.properties
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -35,6 +39,8 @@ jobs:
 
       - name: Build Release APK
         run: flutter build apk --release --android-skip-build-dependency-validation
+        env:
+          GRADLE_OPTS: -Xmx4g
 
       - name: Upload Built APK
         uses: actions/upload-artifact@v4
