@@ -38,7 +38,4 @@ flutter {
 }
 
 dependencies {
-    implementation "io.flutter:flutter_embedding:1.0.0"
-    implementation "androidx.annotation:annotation:1.7.1"
-    implementation "androidx.appcompat:appcompat:1.6.1"
 }
