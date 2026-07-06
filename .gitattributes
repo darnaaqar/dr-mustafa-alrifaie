@@ -1,0 +1,7 @@
+# Treat all images as binary files to prevent Git from performing line-ending normalization (LF/CRLF) or UTF-8 conversion which corrupts them.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
