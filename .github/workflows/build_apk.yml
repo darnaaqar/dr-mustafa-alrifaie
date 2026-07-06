@@ -33,8 +33,6 @@ jobs:
           flutter-version: '3.32.x'
           channel: 'stable'
           cache: true
-          cache-key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
-          cache-path: flutter_app/.flutter-plugins-dependencies
 
       - name: Install Dependencies
         working-directory: flutter_app
