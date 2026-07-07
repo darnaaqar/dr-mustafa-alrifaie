@@ -13,7 +13,7 @@ void main() async {
     try {
       await Supabase.initialize(
         url: SupabaseConfig.url,
-        anonKey: SupabaseConfig.anonKey,
+        publishableKey: SupabaseConfig.anonKey,
       );
       DatabaseService.instance.markInitialized();
     } catch (e) {

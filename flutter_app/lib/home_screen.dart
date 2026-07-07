@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'constants.dart';
 import 'database_service.dart';
 
@@ -35,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
         key: _scaffoldKey,
         backgroundColor: DentalColors.background,
         appBar: AppBar(
-          backgroundColor: DentalColors.background.withOpacity(0.8),
+          backgroundColor: DentalColors.background.withValues(alpha: 0.8),
           elevation: 0,
           leading: IconButton(
             icon: const Icon(LucideIcons.menu, color: DentalColors.primaryAccent),
@@ -61,10 +60,10 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: ActionChip(
                 backgroundColor: DentalColors.cardBg,
-                side: BorderSide(color: DentalColors.primaryAccent.withOpacity(0.2)),
+                side: BorderSide(color: DentalColors.primaryAccent.withValues(alpha: 0.2)),
                 label: Text(
                   widget.isArabic ? "English" : "عربي",
-                  style: TextStyle(color: DentalColors.primaryAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: DentalColors.primaryAccent, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
                 onPressed: widget.onLanguageToggle,
               ),
@@ -87,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: (index) => setState(() => _currentIndex = index),
           backgroundColor: DentalColors.cardBg,
           selectedItemColor: DentalColors.primaryAccent,
-          unselectedItemColor: DentalColors.textSecondary.withOpacity(0.5),
+          unselectedItemColor: DentalColors.textSecondary.withValues(alpha: 0.5),
           type: BottomNavigationBarType.fixed,
           selectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
           unselectedLabelStyle: const TextStyle(fontSize: 10),
@@ -199,7 +198,7 @@ class _HomeTab extends StatelessWidget {
               image: DecorationImage(
                 image: const NetworkImage('https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=1200'),
                 fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.7), BlendMode.darken),
+                colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.7), BlendMode.darken),
               ),
             ),
             child: Column(
@@ -217,7 +216,7 @@ class _HomeTab extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   isArabic ? "أحدث تقنيات طب الأسنان الرقمي والجميل" : "Latest digital and aesthetic dentistry technologies",
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -310,7 +309,7 @@ class _HomeTab extends StatelessWidget {
         decoration: BoxDecoration(
           color: DentalColors.cardBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         ),
         child: Column(
           children: [
@@ -506,7 +505,7 @@ class _ContactTab extends StatelessWidget {
       decoration: BoxDecoration(
         color: DentalColors.cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
