@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
         key: _scaffoldKey,
         backgroundColor: DentalColors.background,
         appBar: AppBar(
-          backgroundColor: DentalColors.background.withValues(alpha: 0.8),
+          backgroundColor: DentalColors.background.withOpacity(0.8),
           elevation: 0,
           leading: IconButton(
             icon: const Icon(LucideIcons.menu, color: DentalColors.primaryAccent),
@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: ActionChip(
                 backgroundColor: DentalColors.cardBg,
-                side: BorderSide(color: DentalColors.primaryAccent.withValues(alpha: 0.2)),
+                side: BorderSide(color: DentalColors.primaryAccent.withOpacity(0.2)),
                 label: Text(
                   widget.isArabic ? "English" : "عربي",
                   style: const TextStyle(color: DentalColors.primaryAccent, fontSize: 12, fontWeight: FontWeight.bold),
@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: (index) => setState(() => _currentIndex = index),
           backgroundColor: DentalColors.cardBg,
           selectedItemColor: DentalColors.primaryAccent,
-          unselectedItemColor: DentalColors.textSecondary.withValues(alpha: 0.5),
+          unselectedItemColor: DentalColors.textSecondary.withOpacity(0.5),
           type: BottomNavigationBarType.fixed,
           selectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
           unselectedLabelStyle: const TextStyle(fontSize: 10),
@@ -108,8 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.white10)),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.1))),
             ),
             child: Center(
               child: Column(
@@ -139,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(20.0),
             child: Text(
               "v1.0.1 Premium",
-              style: GoogleFonts.jetBrainsMono(color: Colors.white10, fontSize: 10),
+              style: GoogleFonts.jetBrainsMono(color: Colors.white.withOpacity(0.1), fontSize: 10),
             ),
           ),
         ],
@@ -194,11 +194,11 @@ class _HomeTab extends StatelessWidget {
             decoration: BoxDecoration(
               color: DentalColors.cardBg,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white10),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
               image: DecorationImage(
                 image: const NetworkImage('https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=1200'),
                 fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.7), BlendMode.darken),
+                colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.7), BlendMode.darken),
               ),
             ),
             child: Column(
@@ -216,7 +216,7 @@ class _HomeTab extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   isArabic ? "أحدث تقنيات طب الأسنان الرقمي والجميل" : "Latest digital and aesthetic dentistry technologies",
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -277,7 +277,7 @@ class _HomeTab extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: DentalColors.cardBg,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white10),
+                      border: Border.all(color: Colors.white.withOpacity(0.1)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,7 +309,7 @@ class _HomeTab extends StatelessWidget {
         decoration: BoxDecoration(
           color: DentalColors.cardBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
         ),
         child: Column(
           children: [
@@ -344,7 +344,7 @@ class _ServicesTab extends StatelessWidget {
               decoration: BoxDecoration(
                 color: DentalColors.cardBg,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white10),
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
               ),
               clipBehavior: Clip.antiAlias,
               child: Column(
@@ -404,7 +404,7 @@ class _GalleryTab extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(image: NetworkImage(item['image_url']), fit: BoxFit.cover),
-                border: Border.all(color: Colors.white10),
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
               ),
             );
           },
@@ -450,7 +450,7 @@ class _AboutTab extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: DentalColors.cardBg,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -505,7 +505,7 @@ class _ContactTab extends StatelessWidget {
       decoration: BoxDecoration(
         color: DentalColors.cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Row(
         children: [
