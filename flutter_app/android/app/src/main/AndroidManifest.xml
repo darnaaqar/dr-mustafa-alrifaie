@@ -16,12 +16,11 @@
         </intent>
     </queries>
 
-    <application
-        android:label="Dr. Mustafa Al-Rifaie"
-        android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:theme="@style/LaunchTheme">
+<application
+    android:label="Dr. Mustafa Al-Rifaie"
+    android:icon="@mipmap/ic_launcher"
+    android:roundIcon="@mipmap/ic_launcher_round"
+    android:theme="@style/LaunchTheme">
         <activity
             android:name=".MainActivity"
             android:exported="true"
