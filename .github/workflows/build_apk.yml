@@ -27,36 +27,36 @@ jobs:
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError" >> flutter_app/android/gradle.properties
 
-       - name: Set up Flutter
-         uses: subosito/flutter-action@v2
-         with:
-           flutter-version: '3.24.0'
-           channel: 'stable'
-           cache: true
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
 
-       - name: Create Android local.properties for CI
-         working-directory: flutter_app
-         run: |
-           # If FLUTTER_ROOT is present in environment, write it to android/local.properties
-           if [ -n "${FLUTTER_ROOT:-}" ]; then
-             echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
-           fi
-           # ANDROID_SDK_ROOT or ANDROID_HOME may be available in the runner; add sdk.dir for Gradle if possible
-           if [ -n "${ANDROID_SDK_ROOT:-}" ]; then
-             echo "sdk.dir=${ANDROID_SDK_ROOT}" >> android/local.properties
-           elif [ -n "${ANDROID_HOME:-}" ]; then
-             echo "sdk.dir=${ANDROID_HOME}" >> android/local.properties
-           fi
+      - name: Create Android local.properties for CI
+        working-directory: flutter_app
+        run: |
+          # If FLUTTER_ROOT is present in environment, write it to android/local.properties
+          if [ -n "${FLUTTER_ROOT:-}" ]; then
+            echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
+          fi
+          # ANDROID_SDK_ROOT or ANDROID_HOME may be available in the runner; add sdk.dir for Gradle if possible
+          if [ -n "${ANDROID_SDK_ROOT:-}" ]; then
+            echo "sdk.dir=${ANDROID_SDK_ROOT}" >> android/local.properties
+          elif [ -n "${ANDROID_HOME:-}" ]; then
+            echo "sdk.dir=${ANDROID_HOME}" >> android/local.properties
+          fi
 
-       - name: Install Dependencies
-         working-directory: flutter_app
-         run: flutter pub get
+      - name: Install Dependencies
+        working-directory: flutter_app
+        run: flutter pub get
 
-       - name: Build Release APK
-         working-directory: flutter_app
-         run: flutter build apk --debug -v
-         env:
-           GRADLE_OPTS: -Xmx4g
+      - name: Build Release APK
+        working-directory: flutter_app
+        run: flutter build apk --debug -v
+        env:
+          GRADLE_OPTS: -Xmx4g
 
       - name: Upload Built APK
         uses: actions/upload-artifact@v4
