@@ -36,9 +36,3 @@ android {
 flutter {
     source = "../.."
 }
-
-dependencies {
-    implementation "androidx.annotation:annotation:1.7.1"
-    implementation "io.flutter:flutter_embedding_debug:+"
-    implementation "io.flutter:flutter_embedding_release:+"
-}
