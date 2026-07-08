@@ -14,7 +14,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.dr_mustafa.dental_clinic_app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = rootProject.ext.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -28,8 +28,8 @@ android {
 
     defaultConfig {
         applicationId = "com.dr_mustafa.dental_clinic_app"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -62,5 +62,3 @@ android {
 flutter {
     source = "../.."
 }
-
-dependencies {}
