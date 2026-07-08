@@ -44,6 +44,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Flutter embedding generated files
+flutter_app/android/app/src/main/java/io/flutter/plugins
+
+# Flutter local.properties (generated on CI)
+flutter_app/android/local.properties
+
 # Environment files
 .env*
 !.env.example
