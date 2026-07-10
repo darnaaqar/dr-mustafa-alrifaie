@@ -14,24 +14,28 @@ allprojects {
 }
 
 rootProject.buildDir = '../build'
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
     
-    repositories {
-        google()
-        mavenCentral()
+    // Set compileSdk BEFORE the project is evaluated
+    // This ensures plugins like app_links get the proper SDK version
+    beforeEvaluate { project ->
+        if (!project.ext.has('compileSdk')) {
+            project.ext.compileSdk = rootProject.ext.compileSdkVersion
+        }
     }
     
-    // Apply SDK versions to all subprojects (including plugins) before evaluation
+    // Apply SDK versions during plugin application
     plugins.withId('com.android.library') {
         android {
-            compileSdk = rootProject.ext.compileSdkVersion
+            compileSdk rootProject.ext.compileSdkVersion
         }
     }
     
     plugins.withId('com.android.application') {
         android {
-            compileSdk = rootProject.ext.compileSdkVersion
+            compileSdk rootProject.ext.compileSdkVersion
         }
     }
 }
