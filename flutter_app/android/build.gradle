@@ -6,24 +6,34 @@ buildscript {
     }
 }
 
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
     
-    // Apply SDK versions to all subprojects (including plugins)
-    afterEvaluate { project ->
-        if (project.plugins.hasPlugin('com.android.library') || project.plugins.hasPlugin('com.android.application')) {
-            project.android {
-                if (!project.android.hasProperty('compileSdk')) {
-                    compileSdk = rootProject.ext.compileSdkVersion
-                }
-            }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    
+    // Apply SDK versions to all subprojects (including plugins) before evaluation
+    plugins.withId('com.android.library') {
+        android {
+            compileSdk = rootProject.ext.compileSdkVersion
         }
     }
-}
-
-subprojects {
-    project.evaluationDependsOn(':app')
+    
+    plugins.withId('com.android.application') {
+        android {
+            compileSdk = rootProject.ext.compileSdkVersion
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
